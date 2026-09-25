@@ -44,6 +44,18 @@ button{cursor:pointer}
 .empty{padding:28px;text-align:center;color:var(--muted)}
 .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.62);z-index:80;padding:16px}.modal.open{display:grid}.modal-card{width:min(510px,100%);background:#111620;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}.modal-card h3{margin:0 0 14px}.form{display:grid;gap:11px}.form label{font-size:12px;color:var(--muted)}.form input,.form textarea,.form select{width:100%;margin-top:6px;padding:10px 11px;border-radius:10px;border:1px solid var(--border);background:#0b0f15;color:var(--text);outline:none}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
 .toast{position:fixed;right:18px;bottom:18px;z-index:120;background:#151b26;border:1px solid var(--border);padding:11px 13px;border-radius:11px;box-shadow:var(--shadow);font-size:13px;display:none}.toast.show{display:block}.statusbar{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}.statusbar i{width:8px;height:8px;border-radius:50%;background:#f59e0b}.statusbar i.online{background:#22c55e}
+
+.sidebar-layout{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 69px)}
+.sidebar{position:sticky;top:69px;height:calc(100vh - 69px);padding:20px 14px;border-right:1px solid rgba(255,255,255,.06);background:rgba(10,13,18,.72);backdrop-filter:blur(14px)}
+.side-title{padding:8px 10px 14px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:800}
+.nav{display:flex;flex-direction:column;gap:7px}
+.nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:12px 12px;border:1px solid transparent;border-radius:12px;background:transparent;color:#cbd5e1;text-align:left;font-weight:700}
+.nav-btn:hover{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.18)}
+.nav-btn.active{background:rgba(139,92,246,.16);border-color:#5b45a6;color:#fff;box-shadow:inset 0 0 0 1px rgba(139,92,246,.08)}
+.nav-icon{width:24px;text-align:center;font-size:16px}
+.content-shell{min-width:0}
+.tab-panel{display:none}.tab-panel.active{display:block}
+@media(max-width:980px){.sidebar-layout{grid-template-columns:1fr}.sidebar{position:sticky;top:69px;height:auto;z-index:10;border-right:0;border-bottom:1px solid rgba(255,255,255,.06);padding:10px 12px}.side-title{display:none}.nav{flex-direction:row;overflow:auto;gap:8px}.nav-btn{width:auto;white-space:nowrap;padding:10px 12px}.nav-icon{display:none}.content-shell{min-width:0}}
 @media(max-width:980px){.metrics{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.admin-grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.task-summary{grid-template-columns:1fr}}
 @media(max-width:620px){.container{padding:17px 12px 30px}.topbar-inner{padding:12px}.metrics{grid-template-columns:1fr 1fr}.hero h2{font-size:24px}.login-card{padding:24px}.task-table{min-width:850px}.top-actions .role{display:none}.bars{gap:7px}}
 </style>
@@ -75,48 +87,68 @@ button{cursor:pointer}
     </div>
   </header>
 
-  <main class="container">
-    <div class="hero">
-      <div><h2>Painel</h2><p id="prettyDate"></p></div>
-      <div class="date-tools">
-        <button class="btn" id="prevBtn">←</button><button class="btn" id="todayBtn">Hoje</button><input type="date" id="datePicker"><button class="btn" id="nextBtn">→</button>
-      </div>
+  <div class="sidebar-layout">
+    <aside class="sidebar">
+      <div class="side-title">Navegação</div>
+      <nav class="nav">
+        <button class="nav-btn active" data-tab="tasksTab"><span class="nav-icon">☑</span><span>Tarefas</span></button>
+        <button class="nav-btn" data-tab="instancesTab"><span class="nav-icon">◈</span><span>Instância</span></button>
+        <button class="nav-btn" data-tab="agendaTab"><span class="nav-icon">◷</span><span>Agenda</span></button>
+        <button class="nav-btn" data-tab="weekTab"><span class="nav-icon">▥</span><span>Resumo Semanal</span></button>
+        <button class="nav-btn hidden" id="adminNavBtn" data-tab="adminTab"><span class="nav-icon">⚙</span><span>Administração</span></button>
+      </nav>
+    </aside>
+
+    <div class="content-shell">
+      <main class="container">
+        <div class="hero">
+          <div><h2 id="pageTitle">Tarefas</h2><p id="prettyDate"></p></div>
+          <div class="date-tools">
+            <button class="btn" id="prevBtn">←</button><button class="btn" id="todayBtn">Hoje</button><input type="date" id="datePicker"><button class="btn" id="nextBtn">→</button>
+          </div>
+        </div>
+
+        <section id="tasksTab" class="tab-panel active">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Contas e tarefas</div><div class="section-sub">As alterações ficam compartilhadas entre todos os acessos.</div></div></div>
+            <div class="tools"><input id="search" placeholder="Buscar conta…"><select id="filter"><option value="all">Todas</option><option value="complete">Completas</option><option value="pending">Pendentes</option></select></div>
+            <div class="table-wrap"><table class="task-table"><thead></thead><tbody id="tbody"></tbody></table></div>
+          </section>
+        </section>
+
+        <section id="instancesTab" class="tab-panel">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Instâncias farmadas</div><div class="section-sub">Quantidade do dia selecionado.</div></div></div>
+            <div id="instances" class="cards"></div>
+          </section>
+        </section>
+
+        <section id="agendaTab" class="tab-panel">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Agenda</div><div class="section-sub">Compromissos do dia.</div></div><div id="agendaAdminAction"></div></div>
+            <div id="agendaList" class="agenda"></div>
+          </section>
+        </section>
+
+        <section id="weekTab" class="tab-panel">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Resumo semanal</div><div class="section-sub">Percentual geral de tarefas concluídas por dia.</div></div><div id="weekRange" class="pill"></div></div>
+            <div class="chart"><div class="bars" id="chart"></div></div>
+          </section>
+        </section>
+
+        <section id="adminTab" class="tab-panel">
+          <section id="adminSection" class="section hidden">
+            <div class="section-head"><div><div class="section-title">Administração</div><div class="section-sub">Somente o administrador pode alterar a estrutura do painel.</div></div></div>
+            <div class="admin-grid">
+              <div class="admin-box"><strong>Contas</strong><div style="margin-top:7px;color:var(--muted);font-size:12px">Adicionar, renomear ou remover contas.</div><div style="margin-top:10px"><button class="btn accent" id="addAccountBtn">+ Adicionar conta</button></div><div id="accountAdmin" class="admin-list"></div></div>
+              <div class="admin-box"><strong>Tarefas</strong><div style="margin-top:7px;color:var(--muted);font-size:12px">Adicionar, renomear ou remover tarefas.</div><div style="margin-top:10px"><button class="btn accent" id="addTaskBtn">+ Adicionar tarefa</button></div><div id="taskAdmin" class="admin-list"></div></div>
+            </div>
+          </section>
+        </section>
+      </main>
     </div>
-
-    <div id="metrics" class="metrics"></div>
-
-    <section class="section">
-      <div class="section-head"><div><div class="section-title">Contas e tarefas</div><div class="section-sub">As alterações ficam compartilhadas entre todos os acessos.</div></div></div>
-      <div class="tools"><input id="search" placeholder="Buscar conta…"><select id="filter"><option value="all">Todas</option><option value="complete">Completas</option><option value="pending">Pendentes</option></select></div>
-      <div class="table-wrap"><table class="task-table"><thead></thead><tbody id="tbody"></tbody></table></div>
-    </section>
-
-    <div class="two" style="margin-top:18px">
-      <section class="section">
-        <div class="section-head"><div><div class="section-title">Instâncias farmadas</div><div class="section-sub">Quantidade do dia selecionado.</div></div></div>
-        <div id="instances" class="cards"></div>
-      </section>
-
-      <section class="section">
-        <div class="section-head"><div><div class="section-title">Agenda</div><div class="section-sub">Compromissos do dia.</div></div><div id="agendaAdminAction"></div></div>
-        <div id="agendaList" class="agenda"></div>
-      </section>
-    </div>
-
-    <section class="section" style="margin-top:18px">
-      <div class="section-head"><div><div class="section-title">Resumo semanal</div><div class="section-sub">Percentual de tarefas concluídas por dia.</div></div><div id="weekRange" class="pill"></div></div>
-      <div class="chart"><div class="bars" id="chart"></div></div>
-      <div id="taskSummary" class="task-summary"></div>
-    </section>
-
-    <section id="adminSection" class="section hidden" style="margin-top:18px">
-      <div class="section-head"><div><div class="section-title">Administração</div><div class="section-sub">Somente o administrador pode alterar a estrutura do painel.</div></div></div>
-      <div class="admin-grid">
-        <div class="admin-box"><strong>Contas</strong><div style="margin-top:7px;color:var(--muted);font-size:12px">Adicionar, renomear ou remover contas.</div><div style="margin-top:10px"><button class="btn accent" id="addAccountBtn">+ Adicionar conta</button></div><div id="accountAdmin" class="admin-list"></div></div>
-        <div class="admin-box"><strong>Tarefas</strong><div style="margin-top:7px;color:var(--muted);font-size:12px">Adicionar, renomear ou remover tarefas.</div><div style="margin-top:10px"><button class="btn accent" id="addTaskBtn">+ Adicionar tarefa</button></div><div id="taskAdmin" class="admin-list"></div></div>
-      </div>
-    </section>
-  </main>
+  </div>
 </section>
 
 <div id="modal" class="modal"><div class="modal-card"><h3 id="modalTitle"></h3><div id="modalBody"></div><div class="modal-actions"><button class="btn" id="modalCancel">Cancelar</button><button class="btn accent" id="modalSave">Salvar</button></div></div></div>
@@ -174,7 +206,9 @@ button{cursor:pointer}
     $('rolePill').className = 'pill role ' + (role === 'admin' ? 'admin' : 'team');
     $('userLabel').textContent = role === 'admin' ? 'Acesso administrativo' : 'Acesso da equipe';
     $('adminSection').classList.toggle('hidden', role !== 'admin');
+    $('adminNavBtn').classList.toggle('hidden', role !== 'admin');
     current = DEFAULT_DATE;
+    setTab('tasksTab');
     $('datePicker').value = current;
     await loadAll();
     subscribeRealtime();
@@ -217,23 +251,10 @@ button{cursor:pointer}
 
   function renderAll(){
     $('prettyDate').textContent = pretty(current); $('datePicker').value = current;
-    renderMetrics(); renderAccounts(); renderInstances(); renderAgenda(); renderAdmin(); renderWeek();
+    renderAccounts(); renderInstances(); renderAgenda(); renderAdmin(); renderWeek();
   }
 
   function done(aid,tid){ return statuses.some(x=>x.account_id===aid && x.task_id===tid && x.done===true); }
-
-  function renderMetrics(){
-    const total = accounts.length * tasks.length;
-    const complete = statuses.filter(x=>x.done).length;
-    const full = accounts.filter(a=>tasks.length && tasks.every(t=>done(a.id,t.id))).length;
-    const pct = total ? Math.round(complete/total*100) : 0;
-    $('metrics').innerHTML = [
-      ['Contas', accounts.length, 'ativas'],
-      ['Tarefas concluídas', complete, `de ${total}`],
-      ['Contas completas', full, `de ${accounts.length}`],
-      ['Conclusão do dia', pct+'%', 'tarefas']
-    ].map(x=>`<div class="metric-card"><div class="metric-label">${x[0]}</div><div class="metric-value">${x[1]}</div><div class="metric-note">${x[2]}</div></div>`).join('');
-  }
 
   function renderAccounts(){
     const q = ($('search').value||'').toLowerCase(); const f=$('filter').value;
@@ -279,8 +300,6 @@ button{cursor:pointer}
     const rows=await Promise.all(days.map(day=>sb.from('daily_task_status').select('done').eq('day',day)));
     const vals=rows.map(r=>{const c=(r.data||[]).filter(x=>x.done).length;return accounts.length&&tasks.length?Math.round(c/(accounts.length*tasks.length)*100):0;});
     $('chart').innerHTML=vals.map((v,i)=>`<div class="bar-col"><span class="bar-val">${v}%</span><div class="bar-shell"><div class="bar" style="height:${Math.max(2,v)}%"></div></div><span class="bar-label">${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][i]}</span></div>`).join('');
-    const taskRows=await Promise.all(tasks.map(async t=>{const results=await Promise.all(days.map(day=>sb.from('daily_task_status').select('done').eq('day',day).eq('task_id',t.id)));const count=results.reduce((n,r)=>n+(r.data||[]).filter(x=>x.done).length,0);const denom=accounts.length*7;return {name:t.name,pct:denom?Math.round(count/denom*100):0,count};}));
-    $('taskSummary').innerHTML=taskRows.map(x=>`<div class="task-summary-card"><strong>${esc(x.name)}</strong><div style="font-size:22px;font-weight:900;margin-top:4px">${x.pct}%</div><small>${x.count} conclusões na semana</small></div>`).join('') || '<div class="empty">Adicione tarefas para ver o resumo.</div>';
   }
 
   function renderAdmin(){
@@ -325,11 +344,19 @@ button{cursor:pointer}
   function changeDay(n){const d=new Date(current+'T12:00:00');d.setDate(d.getDate()+n);current=iso(d);loadAll();}
   function setDate(v){if(/^\d{4}-\d{2}-\d{2}$/.test(v)){current=v;loadAll();}}
 
+  function setTab(id){
+    document.querySelectorAll('.tab-panel').forEach(el=>el.classList.toggle('active', el.id===id));
+    document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.toggle('active', btn.dataset.tab===id));
+    const titles={tasksTab:'Tarefas',instancesTab:'Instância',agendaTab:'Agenda',weekTab:'Resumo Semanal',adminTab:'Administração'};
+    $('pageTitle').textContent=titles[id]||'Painel';
+  }
+
   $('loginBtn').onclick=login; $('accessCode').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
   $('logoutBtn').onclick=async()=>{await sb.auth.signOut();if(channel)sb.removeChannel(channel);location.reload();};
   $('prevBtn').onclick=()=>changeDay(-1); $('nextBtn').onclick=()=>changeDay(1); $('todayBtn').onclick=()=>setDate(todayISO()); $('datePicker').onchange=e=>setDate(e.target.value);
   $('search').oninput=renderAccounts; $('filter').onchange=renderAccounts;
   $('addAccountBtn').onclick=()=>openModal('account'); $('addTaskBtn').onclick=()=>openModal('task'); $('modalCancel').onclick=closeModal; $('modalSave').onclick=saveModal;
+  document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{ if(btn.id==='adminNavBtn' && role!=='admin') return; setTab(btn.dataset.tab); }));
   $('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 
   sb.auth.getSession().then(({data:{session}})=>{if(session)startApp();else $('accessCode').focus();});
