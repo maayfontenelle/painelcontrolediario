@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0d12">
+<title>Controle Diário</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#080a0f;--panel:#10141c;--panel2:#151a23;--panel3:#1b2130;--border:#293142;
+  --text:#f4f7fb;--muted:#8f9bad;--accent:#8b5cf6;--accent2:#6d4ce8;--green:#22c55e;
+  --yellow:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--shadow:0 22px 70px rgba(0,0,0,.38)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 15% 0%,#1b1430 0,transparent 32%),radial-gradient(circle at 85% 10%,#10182c 0,transparent 28%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 18%,#25184a 0,transparent 40%),var(--bg)}
+.login-card{width:min(430px,100%);background:rgba(16,20,28,.94);border:1px solid var(--border);border-radius:24px;padding:34px;box-shadow:var(--shadow);backdrop-filter:blur(16px)}
+.logo{width:62px;height:62px;border-radius:19px;margin:0 auto 18px;display:grid;place-items:center;background:linear-gradient(135deg,#8b5cf6,#4f46e5);font-size:28px;box-shadow:0 16px 40px rgba(109,76,232,.35)}
+.login h1{margin:0;text-align:center;font-size:28px}.login p{text-align:center;color:var(--muted);font-size:14px;margin:8px 0 24px}
+.pin{display:flex;gap:10px}.pin input{width:100%;height:56px;text-align:center;letter-spacing:5px;font-size:24px;font-weight:800;background:#0a0d12;border:1px solid var(--border);color:var(--text);border-radius:14px;outline:none}.pin input:focus{border-color:#7651ee;box-shadow:0 0 0 4px rgba(139,92,246,.12)}
+.primary{width:100%;border:0;border-radius:14px;padding:14px 18px;background:linear-gradient(135deg,#8b5cf6,#6548e5);color:white;font-weight:800;margin-top:14px}.primary:hover{filter:brightness(1.05)}
+.error{color:#ff6b6b;font-size:13px;text-align:center;min-height:20px;margin-top:10px}
+.app{min-height:100vh}.topbar{position:sticky;top:0;z-index:20;background:rgba(8,10,15,.82);border-bottom:1px solid rgba(255,255,255,.06);backdrop-filter:blur(15px)}
+.topbar-inner{max-width:1500px;margin:auto;padding:15px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{display:flex;gap:12px;align-items:center}.brand-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#4f46e5);display:grid;place-items:center}.brand strong{font-size:16px}.brand small{display:block;color:var(--muted);margin-top:2px}
+.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.pill{padding:8px 11px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px;background:#0d1118}.pill.admin{color:#d9ccff;border-color:#5e48a8;background:#1d1732}.pill.team{color:#bff5fb;border-color:#1e6f7b;background:#0e2228}
+.container{max-width:1500px;margin:0 auto;padding:24px 22px 40px}.hero{display:flex;justify-content:space-between;align-items:end;gap:18px;flex-wrap:wrap;margin-bottom:20px}.hero h2{margin:0 0 7px;font-size:31px}.hero p{margin:0;color:var(--muted);text-transform:capitalize}.date-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:10px 13px;border-radius:11px}.btn:hover{background:var(--panel2)}.btn.accent{background:rgba(139,92,246,.15);border-color:#59439f}.btn.danger{color:#ff9b9b;border-color:#6b3030;background:#261416}.btn.success{color:#a5f3c4;border-color:#265b3b;background:#102318}
+.date-tools input{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:11px;padding:10px 12px}
+.grid{display:grid;grid-template-columns:1fr;gap:18px}.section{background:rgba(16,20,28,.92);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 10px 35px rgba(0,0,0,.18)}
+.section-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.section-title{font-size:17px;font-weight:800}.section-sub{color:var(--muted);font-size:12px;margin-top:3px}.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.metric-card{background:rgba(21,26,35,.9);border:1px solid var(--border);border-radius:15px;padding:15px}.metric-label{color:var(--muted);font-size:12px}.metric-value{font-size:25px;font-weight:900;margin-top:5px}.metric-note{color:var(--muted);font-size:11px;margin-top:3px}
+.table-wrap{overflow:auto}.task-table{width:100%;border-collapse:collapse;min-width:930px}.task-table th,.task-table td{padding:12px 12px;border-bottom:1px solid rgba(255,255,255,.055);text-align:center}.task-table th{color:var(--muted);font-size:12px;font-weight:800;position:sticky;top:0;background:#121720}.task-table td.name,.task-table th:first-child{text-align:left;position:sticky;left:0;background:#10141c;z-index:2}.task-table th:first-child{z-index:3}.check{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:#0c1016;color:#717c8f;font-weight:900}.check.done{border-color:#2e7b49;background:#102b1b;color:#63e38a}.progress{width:95px;height:7px;background:#242b36;border-radius:999px;overflow:hidden;margin-top:6px}.progress i{display:block;height:100%;background:linear-gradient(90deg,#8b5cf6,#22c55e);border-radius:999px}.status{white-space:nowrap;font-size:12px;color:var(--muted)}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#6b7280;margin-right:6px}.dot.ok{background:var(--green);box-shadow:0 0 10px rgba(34,197,94,.45)}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:13px 18px;border-bottom:1px solid var(--border)}.tools input,.tools select{background:#0c1016;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 11px;outline:none}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px}.instance{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px}.instance strong{display:block;font-size:14px;margin-bottom:10px}.qty{display:flex;align-items:center;gap:7px}.qty button{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:#0c1016;color:var(--text);font-size:20px}.qty input{width:100%;min-width:0;height:38px;border-radius:10px;border:1px solid var(--border);background:#0c1016;color:var(--text);text-align:center;font-weight:900}
+.agenda{padding:16px;display:flex;flex-direction:column;gap:10px}.agenda-item{background:var(--panel2);border:1px solid var(--border);border-radius:13px;padding:12px}.agenda-item strong{display:block}.agenda-item small{display:block;color:var(--muted);margin-top:5px;white-space:pre-wrap}.agenda-item .mini-actions{margin-top:8px;display:flex;gap:7px}
+.chart{padding:18px}.chart-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:12px}.bars{height:220px;display:flex;align-items:end;gap:14px;padding:10px 4px}.bar-col{flex:1;min-width:30px;height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:7px}.bar-shell{height:175px;width:100%;display:flex;align-items:end;justify-content:center}.bar{width:min(58px,78%);height:0;border-radius:9px 9px 4px 4px;background:linear-gradient(180deg,#9a76ff,#5f45dc);box-shadow:0 10px 20px rgba(108,76,232,.22)}.bar-val{font-size:11px;color:#d9ccff}.bar-label{font-size:11px;color:var(--muted)}
+.task-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px;border-top:1px solid var(--border)}.task-summary-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px}.task-summary-card strong{display:block}.task-summary-card small{color:var(--muted)}
+.admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:16px}.admin-box{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px}.admin-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:310px;overflow:auto}.admin-row{display:flex;justify-content:space-between;gap:8px;align-items:center;background:#11161f;border:1px solid var(--border);padding:9px 10px;border-radius:10px}.admin-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.admin-row-actions{display:flex;gap:6px}.mini{font-size:12px;padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:#0d1118;color:var(--text)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.62);z-index:80;padding:16px}.modal.open{display:grid}.modal-card{width:min(510px,100%);background:#111620;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}.modal-card h3{margin:0 0 14px}.form{display:grid;gap:11px}.form label{font-size:12px;color:var(--muted)}.form input,.form textarea,.form select{width:100%;margin-top:6px;padding:10px 11px;border-radius:10px;border:1px solid var(--border);background:#0b0f15;color:var(--text);outline:none}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+.toast{position:fixed;right:18px;bottom:18px;z-index:120;background:#151b26;border:1px solid var(--border);padding:11px 13px;border-radius:11px;box-shadow:var(--shadow);font-size:13px;display:none}.toast.show{display:block}.statusbar{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}.statusbar i{width:8px;height:8px;border-radius:50%;background:#f59e0b}.statusbar i.online{background:#22c55e}
+
+.sidebar-layout{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 69px)}
+.sidebar{position:sticky;top:69px;height:calc(100vh - 69px);padding:20px 14px;border-right:1px solid rgba(255,255,255,.06);background:rgba(10,13,18,.72);backdrop-filter:blur(14px)}
+.side-title{padding:8px 10px 14px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:800}
+.nav{display:flex;flex-direction:column;gap:7px}
+.nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:12px 12px;border:1px solid transparent;border-radius:12px;background:transparent;color:#cbd5e1;text-align:left;font-weight:700}
+.nav-btn:hover{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.18)}
+.nav-btn.active{background:rgba(139,92,246,.16);border-color:#5b45a6;color:#fff;box-shadow:inset 0 0 0 1px rgba(139,92,246,.08)}
+.nav-icon{width:24px;text-align:center;font-size:16px}
+.content-shell{min-width:0}
+.tab-panel{display:none}.tab-panel.active{display:block}
+@media(max-width:980px){.sidebar-layout{grid-template-columns:1fr}.sidebar{position:sticky;top:69px;height:auto;z-index:10;border-right:0;border-bottom:1px solid rgba(255,255,255,.06);padding:10px 12px}.side-title{display:none}.nav{flex-direction:row;overflow:auto;gap:8px}.nav-btn{width:auto;white-space:nowrap;padding:10px 12px}.nav-icon{display:none}.content-shell{min-width:0}}
+@media(max-width:980px){.metrics{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.admin-grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.task-summary{grid-template-columns:1fr}}
+@media(max-width:620px){.container{padding:17px 12px 30px}.topbar-inner{padding:12px}.metrics{grid-template-columns:1fr 1fr}.hero h2{font-size:24px}.login-card{padding:24px}.task-table{min-width:850px}.top-actions .role{display:none}.bars{gap:7px}}
+
+.relic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px}.relic-card{background:linear-gradient(145deg,#151a23,#10141c);border:1px solid var(--border);border-radius:15px;padding:14px}.relic-card.red{box-shadow:inset 3px 0 #ef4444}.relic-card.blue{box-shadow:inset 3px 0 #3b82f6}.relic-card.green{box-shadow:inset 3px 0 #22c55e}.relic-card strong{display:block}.relic-card small{color:var(--muted)}
+.keys-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding:16px}.key-card{background:var(--panel2);border:1px solid var(--border);border-radius:13px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}.key-count{font-size:20px;font-weight:900}.account-meta{font-size:11px;color:var(--muted);margin-top:3px}.inst-charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 16px 16px}.mini-chart{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px}.mini-chart h4{margin:0 0 4px}.hbars{display:flex;flex-direction:column;gap:10px;margin-top:14px}.hbar-row{display:grid;grid-template-columns:135px 1fr 42px;gap:8px;align-items:center;font-size:12px}.hbar-track{height:9px;background:#252c39;border-radius:999px;overflow:hidden}.hbar-fill{height:100%;background:linear-gradient(90deg,#8b5cf6,#06b6d4);border-radius:999px}.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:14px}.day-cell{background:#0d1118;border:1px solid var(--border);border-radius:10px;padding:9px 5px;text-align:center}.day-cell strong{display:block;font-size:17px}.day-cell small{color:var(--muted);font-size:10px}.account-actions{display:flex;gap:6px;justify-content:flex-end}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-grid .full{grid-column:1/-1}
+@media(max-width:800px){.inst-charts{grid-template-columns:1fr}.relic-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}.day-grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<section id="loginView" class="login">
+  <div class="login-card">
+    <div class="logo">✓</div>
+    <h1>Controle Diário</h1>
+    <p>Digite o código de acesso que você recebeu.</p>
+    <div class="pin"><input id="accessCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Código" aria-label="Código de acesso"></div>
+    <button class="primary" id="loginBtn">Entrar</button>
+    <div id="loginError" class="error"></div>
+  </div>
+</section>
+
+<section id="appView" class="app hidden">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon">✓</div>
+        <div><strong>Controle Diário</strong><small id="userLabel">Painel compartilhado</small></div>
+      </div>
+      <div class="top-actions">
+        <div id="rolePill" class="pill role">Equipe</div>
+        <div class="statusbar"><i id="onlineDot"></i><span id="syncText">Conectando…</span></div>
+        <button class="btn" id="logoutBtn">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-layout">
+    <aside class="sidebar">
+      <div class="side-title">Navegação</div>
+      <nav class="nav">
+        <button class="nav-btn active" data-tab="tasksTab"><span class="nav-icon">☑</span><span>Tarefas</span></button>
+        <button class="nav-btn" data-tab="relicsTab"><span class="nav-icon">✦</span><span>Relíquias</span></button>
+        <button class="nav-btn" data-tab="instancesTab"><span class="nav-icon">◈</span><span>Instância</span></button>
+        <button class="nav-btn" data-tab="agendaTab"><span class="nav-icon">◷</span><span>Agenda</span></button>
+        <button class="nav-btn" data-tab="weekTab"><span class="nav-icon">▥</span><span>Resumo Semanal</span></button>
+        <button class="nav-btn hidden" id="adminNavBtn" data-tab="adminTab"><span class="nav-icon">⚙</span><span>Administração</span></button>
+      </nav>
+    </aside>
+
+    <div class="content-shell">
+      <main class="container">
+        <div class="hero">
+          <div><h2 id="pageTitle">Tarefas</h2><p id="prettyDate"></p></div>
+          <div class="date-tools">
+            <button class="btn" id="prevBtn">←</button><button class="btn" id="todayBtn">Hoje</button><input type="date" id="datePicker"><button class="btn" id="nextBtn">→</button>
+          </div>
+        </div>
+
+        <section id="tasksTab" class="tab-panel active">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Contas e tarefas</div><div class="section-sub">Seu painel é individual. Cada acesso vê apenas as próprias contas.</div></div><button class="btn accent" id="quickAddAccountBtn">+ Nova conta</button></div>
+            <div class="tools"><input id="search" placeholder="Buscar conta…"><select id="filter"><option value="all">Todas</option><option value="complete">Completas</option><option value="pending">Pendentes</option></select></div>
+            <div class="table-wrap"><table class="task-table"><thead></thead><tbody id="tbody"></tbody></table></div>
+          </section>
+        </section>
+
+        <section id="relicsTab" class="tab-panel">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Relíquias por conta</div><div class="section-sub">Saldo atual. Na primeira vez informe manualmente; depois o sincronizador mantém as entradas e saídas.</div></div></div>
+            <div id="relicList"></div>
+          </section>
+        </section>
+
+        <section id="instancesTab" class="tab-panel">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Instâncias farmadas</div><div class="section-sub">Quantidade do dia selecionado.</div></div></div>
+            <div id="instances" class="cards"></div><div class="inst-charts"><div class="mini-chart"><h4>Instâncias na semana</h4><div class="section-sub">Comparativo por tipo</div><div id="instanceTypeChart" class="hbars"></div></div><div class="mini-chart"><h4>Dias mais ativos</h4><div class="section-sub">Total realizado por dia</div><div id="instanceDayChart" class="day-grid"></div></div></div>
+          </section>
+        </section>
+
+        <section id="agendaTab" class="tab-panel">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Agenda</div><div class="section-sub">Compromissos do dia.</div></div><div id="agendaAdminAction"></div></div>
+            <div id="agendaList" class="agenda"></div>
+          </section>
+        </section>
+
+        <section id="weekTab" class="tab-panel">
+          <section class="section">
+            <div class="section-head"><div><div class="section-title">Resumo semanal</div><div class="section-sub">Quantidade de marcações concluídas por dia.</div></div><div id="weekRange" class="pill"></div></div>
+            <div class="chart"><div class="bars" id="chart"></div></div>
+          </section>
+        </section>
+
+        <section id="adminTab" class="tab-panel">
+          <section id="adminSection" class="section hidden">
+            <div class="section-head"><div><div class="section-title">Administração</div><div class="section-sub">Ferramentas administrativas do seu painel.</div></div></div>
+            <div class="admin-grid">
+              <div class="admin-box"><strong>Contas</strong><div style="margin-top:7px;color:var(--muted);font-size:12px">Adicionar, renomear ou remover contas.</div><div style="margin-top:10px"><button class="btn accent" id="addAccountBtn">+ Adicionar conta</button></div><div id="accountAdmin" class="admin-list"></div></div>
+              <div class="admin-box"><strong>Tarefas</strong><div style="margin-top:7px;color:var(--muted);font-size:12px">Adicionar, renomear ou remover tarefas.</div><div style="margin-top:10px"><button class="btn accent" id="addTaskBtn">+ Adicionar tarefa</button></div><div id="taskAdmin" class="admin-list"></div></div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
+</section>
+
+<div id="modal" class="modal"><div class="modal-card"><h3 id="modalTitle"></h3><div id="modalBody"></div><div class="modal-actions"><button class="btn" id="modalCancel">Cancelar</button><button class="btn accent" id="modalSave">Salvar</button></div></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+(() => {
+  const SUPABASE_URL='https://knvymoopzuszhecfsocf.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY='sb_publishable_1EVbfdhgtWWf1GiD1yESDg_z51K-zYr';
+  const ADMIN_EMAIL='admin@painelcontrolediario.local';
+  const LOGIN_EMAILS=[ADMIN_EMAIL,'pw187@painel.local','usuario1@painelcontrolediario.local','usuario2@painelcontrolediario.local','usuario3@painelcontrolediario.local'];
+  if(!window.supabase){
+    const el=document.getElementById('loginError');
+    if(el) el.textContent='Não foi possível carregar a conexão com o Supabase. Atualize a página (Ctrl+F5).';
+    return;
+  }
+  const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  let role='user',userId=null,current=null,accounts=[],tasks=[],statuses=[],instance=null,agenda=[],weekInstances=[]; let channel=null,modalMode=null;
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const localISO=d=>{const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)};
+  function todayISO(){return localISO(new Date())} const pretty=d=>new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const toast=msg=>{$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>$('toast').classList.remove('show'),2800)};
+  const setSync=(t,on=false)=>{$('syncText').textContent=t;$('onlineDot').classList.toggle('online',on)};
+  function setLoginError(msg=''){$('loginError').textContent=msg}
+
+  async function login(){
+    const code=$('accessCode').value.trim();
+    if(!/^\d{6}$/.test(code)){setLoginError('Digite o código de 6 dígitos.');return}
+
+    $('loginBtn').disabled=true;
+    $('loginBtn').textContent='Entrando…';
+    setLoginError('');
+
+    try{
+      // Os acessos que já existiam continuam com identificação direta.
+      // Para os 3 novos usuários, o painel testa apenas os 3 e-mails técnicos novos.
+      let emails=[];
+      if(code==='252627') emails=[ADMIN_EMAIL];
+      else if(code==='011255') emails=['pw187@painel.local'];
+      else emails=['usuario1@painelcontrolediario.local','usuario2@painelcontrolediario.local','usuario3@painelcontrolediario.local'];
+
+      let logged=false;
+      for(const email of emails){
+        const {data,error}=await sb.auth.signInWithPassword({email,password:code});
+        if(!error && data?.session){logged=true;break}
+      }
+
+      if(!logged){
+        setLoginError('Código não reconhecido. Confira os 6 números e tente novamente.');
+        return;
+      }
+
+      await startApp();
+    }catch(err){
+      console.error(err);
+      setLoginError('Não foi possível conectar ao Supabase. Abra este arquivo no Chrome com internet e tente novamente.');
+    }finally{
+      $('loginBtn').disabled=false;
+      $('loginBtn').textContent='Entrar';
+    }
+  }
+  async function startApp(){
+    const {data:{session}}=await sb.auth.getSession(); if(!session)return; const email=(session.user.email||'').toLowerCase();
+    if(!LOGIN_EMAILS.includes(email)){await sb.auth.signOut();setLoginError('Usuário não autorizado.');return}
+    userId=session.user.id; role=email===ADMIN_EMAIL?'admin':'user';
+    $('loginView').classList.add('hidden');$('appView').classList.remove('hidden');
+    $('rolePill').textContent=role==='admin'?'Administrador':'Usuário';$('rolePill').className='pill role '+(role==='admin'?'admin':'team');
+    $('userLabel').textContent=role==='admin'?'Painel administrativo':'Painel individual'; $('adminSection').classList.toggle('hidden',role!=='admin');$('adminNavBtn').classList.toggle('hidden',role!=='admin');
+    current=todayISO();setTab('tasksTab');$('datePicker').value=current;await loadAll();subscribeRealtime();
+  }
+  function startWeek(s){const d=new Date(s+'T12:00:00'),day=d.getDay();d.setDate(d.getDate()+(day===0?-6:1-day));return d} function iso(d){return localISO(d)}
+  function weekDays(){const start=startWeek(current),days=[];for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);days.push(iso(d))}return days}
+  async function loadAll(){
+    setSync('Sincronizando…');const days=weekDays();
+    const results=await Promise.all([
+      sb.from('accounts').select('*').eq('owner_id',userId).eq('active',true).order('name'), sb.from('tasks').select('*').eq('owner_id',userId).eq('active',true).order('created_at'),
+      sb.from('daily_task_status').select('*').eq('owner_id',userId).eq('day',current), sb.from('daily_instances').select('*').eq('owner_id',userId).eq('day',current).maybeSingle(),
+      sb.from('agenda').select('*').eq('owner_id',userId).eq('day',current).order('time_text',{ascending:true,nullsFirst:true}), sb.from('daily_instances').select('*').eq('owner_id',userId).gte('day',days[0]).lte('day',days[6]).order('day')
+    ]);
+    if(results.some(r=>r.error)){console.error(...results.map(r=>r.error).filter(Boolean));setSync('Erro de sincronização');toast('Não foi possível carregar os dados.');return}
+    accounts=results[0].data||[];
+    const rawTasks=results[1].data||[];
+    const seenTaskKeys=new Set();
+    tasks=rawTasks.filter(t=>{const key=(t.task_key||t.name||'').trim().toLowerCase();if(seenTaskKeys.has(key))return false;seenTaskKeys.add(key);return true});
+    statuses=results[2].data||[];instance=results[3].data||{day:current,paraiso:0,dusk:0,nove99:0};agenda=results[4].data||[];weekInstances=results[5].data||[];
+    setSync('Sincronizado',true);renderAll();
+  }
+  function subscribeRealtime(){if(channel)sb.removeChannel(channel);channel=sb.channel('painel-'+userId).on('postgres_changes',{event:'*',schema:'public',table:'accounts'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'tasks'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'daily_task_status'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'daily_instances'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'agenda'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'relic_events'},()=>loadAll()).subscribe(st=>{if(st==='SUBSCRIBED')setSync('Ao vivo',true)})}
+  function renderAll(){$('prettyDate').textContent=pretty(current);$('datePicker').value=current;renderAccounts();renderRelics();renderInstances();renderInstanceCharts();renderAgenda();renderAdmin();renderWeek()}
+  function done(aid,tid){return statuses.some(x=>x.account_id===aid&&x.task_id===tid&&x.done===true)}
+  function renderAccounts(){
+    const q=($('search').value||'').toLowerCase(),f=$('filter').value;const filtered=accounts.filter(a=>a.name.toLowerCase().includes(q)).filter(a=>{const n=tasks.filter(t=>done(a.id,t.id)).length;return f==='all'||(f==='complete'&&tasks.length&&n===tasks.length)||(f==='pending'&&n<tasks.length)});
+    document.querySelector('.task-table thead').innerHTML=`<tr><th>Conta</th>${tasks.map(t=>`<th>${esc(t.name)}</th>`).join('')}<th>Ações</th></tr>`;
+    $('tbody').innerHTML=filtered.length?filtered.map(a=>`<tr><td class="name"><strong>${esc(a.name)}</strong><div class="account-meta">CID: ${a.game_cid||'não informado'}</div></td>${tasks.map(t=>`<td><button class="check ${done(a.id,t.id)?'done':''}" onclick="window.toggleTask('${a.id}','${t.id}')">${done(a.id,t.id)?'✓':'—'}</button></td>`).join('')}<td><div class="account-actions"><button class="mini" onclick="window.editAccount('${a.id}')">Editar</button></div></td></tr>`).join(''):`<tr><td colspan="${tasks.length+2}" class="empty">Nenhuma conta encontrada.</td></tr>`;
+  }
+  function renderRelics(){$('relicList').innerHTML=accounts.length?accounts.map(a=>`<div style="border-bottom:1px solid var(--border)"><div class="section-head"><div><strong>${esc(a.name)}</strong><div class="section-sub">CID ${a.game_cid||'não informado'}</div></div><button class="mini" onclick="window.editAccount('${a.id}')">Corrigir saldo</button></div><div class="relic-grid"><div class="relic-card red"><small>Relíquia Maravilha</small><strong>Arma</strong><div class="metric-value">${a.relic_weapon||0}</div></div><div class="relic-card blue"><small>Relíquia Maravilha</small><strong>Artefato</strong><div class="metric-value">${a.relic_artifact||0}</div></div><div class="relic-card green"><small>Relíquia Maravilha</small><strong>Armadura</strong><div class="metric-value">${a.relic_armor||0}</div></div></div></div>`).join(''):'<div class="empty">Nenhuma conta cadastrada.</div>'}
+  window.toggleTask=async(accountId,taskId)=>{const old=statuses.find(x=>x.account_id===accountId&&x.task_id===taskId),next=!old?.done;const q=old?sb.from('daily_task_status').update({done:next,updated_at:new Date().toISOString()}).eq('id',old.id):sb.from('daily_task_status').insert({owner_id:userId,day:current,account_id:accountId,task_id:taskId,done:next});const {error}=await q;if(error)toast(error.message);else await loadAll()}
+  async function setInstance(field,value){const val=Math.max(0,parseInt(value,10)||0),payload={owner_id:userId,day:current,paraiso:instance?.paraiso||0,dusk:instance?.dusk||0,nove99:instance?.nove99||0,updated_at:new Date().toISOString()};payload[field]=val;const {error}=await sb.from('daily_instances').upsert(payload,{onConflict:'owner_id,day'});if(error)toast(error.message);else await loadAll()}
+  function renderInstances(){const v={paraiso:instance?.paraiso||0,dusk:instance?.dusk||0,nove99:instance?.nove99||0};$('instances').innerHTML=[['Paraíso Despedaçado','paraiso'],['Dusk','dusk'],['999','nove99']].map(([n,k])=>`<div class="instance"><strong>${n}</strong><div class="qty"><button onclick="window.setInst('${k}',${Math.max(0,v[k]-1)})">−</button><input type="number" min="0" value="${v[k]}" onchange="window.setInst('${k}',this.value)"><button onclick="window.setInst('${k}',${v[k]+1})">+</button></div></div>`).join('')} window.setInst=setInstance;
+  function renderInstanceCharts(){const days=weekDays(),types=[['Paraíso','paraiso'],['Dusk','dusk'],['999','nove99']],totals={paraiso:0,dusk:0,nove99:0};weekInstances.forEach(r=>types.forEach(([,k])=>totals[k]+=Number(r[k]||0)));const max=Math.max(1,...Object.values(totals));$('instanceTypeChart').innerHTML=types.map(([n,k])=>`<div class="hbar-row"><span>${n}</span><div class="hbar-track"><div class="hbar-fill" style="width:${totals[k]/max*100}%"></div></div><strong>${totals[k]}</strong></div>`).join('');const byDay=Object.fromEntries(days.map(d=>[d,0]));weekInstances.forEach(r=>byDay[r.day]=(r.paraiso||0)+(r.dusk||0)+(r.nove99||0));$('instanceDayChart').innerHTML=days.map((d,i)=>`<div class="day-cell"><small>${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][i]}</small><strong>${byDay[d]||0}</strong><small>${d.slice(8,10)}/${d.slice(5,7)}</small></div>`).join('')}
+  function renderAgenda(){$('agendaAdminAction').innerHTML='<button class="btn accent" id="addAgendaBtn">+ Adicionar</button>';$('addAgendaBtn').onclick=()=>openModal('agenda');$('agendaList').innerHTML=agenda.length?agenda.map(x=>`<div class="agenda-item"><strong>${esc(x.time_text||'Sem horário')} · ${esc(x.title)}</strong><small>${esc(x.note||'')}</small><div class="mini-actions"><button class="mini" onclick="window.editAgenda('${x.id}')">Editar</button><button class="mini" style="color:#ff9b9b" onclick="window.deleteAgenda('${x.id}')">Excluir</button></div></div>`).join(''):'<div class="empty">Nenhum compromisso para este dia.</div>'}
+  async function renderWeek(){const days=weekDays();$('weekRange').textContent=`${days[0].slice(8,10)}/${days[0].slice(5,7)} — ${days[6].slice(8,10)}/${days[6].slice(5,7)}`;const rows=await Promise.all(days.map(day=>sb.from('daily_task_status').select('done').eq('owner_id',userId).eq('day',day)));const vals=rows.map(r=>(r.data||[]).filter(x=>x.done).length),max=Math.max(1,...vals);$('chart').innerHTML=vals.map((v,i)=>`<div class="bar-col"><span class="bar-val">${v}</span><div class="bar-shell"><div class="bar" style="height:${Math.max(2,v/max*100)}%"></div></div><span class="bar-label">${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][i]}</span></div>`).join('')}
+  function renderAdmin(){if(role!=='admin')return;$('accountAdmin').innerHTML=accounts.map(a=>`<div class="admin-row"><span>${esc(a.name)}</span><div class="admin-row-actions"><button class="mini" onclick="window.editAccount('${a.id}')">Editar</button><button class="mini" style="color:#ff9b9b" onclick="window.removeAccount('${a.id}','${esc(a.name)}')">Remover</button></div></div>`).join('')||'<div class="empty">Nenhuma conta.</div>';$('taskAdmin').innerHTML=tasks.map(t=>`<div class="admin-row"><span>${esc(t.name)}</span><div class="admin-row-actions"><button class="mini" onclick="window.renameTask('${t.id}')">Editar</button><button class="mini" style="color:#ff9b9b" onclick="window.removeTask('${t.id}','${esc(t.name)}')">Remover</button></div></div>`).join('')||'<div class="empty">Nenhuma tarefa.</div>'}
+  function openModal(mode,data=null){modalMode=mode;$('modal').classList.add('open');$('modal').dataset.editId=data?.id||'';
+    if(mode==='account'){$('modalTitle').textContent=data?'Editar conta e saldos':'Adicionar conta';$('modalBody').innerHTML=`<div class="form form-grid"><label class="full">Nome da conta<input id="mName" value="${esc(data?.name||'')}" placeholder="Nome"></label><label>CID do personagem<input id="mCid" inputmode="numeric" value="${esc(data?.game_cid||'')}" placeholder="Ex.: 42640"></label><label>🔴 Arma<input id="mWeapon" type="number" min="0" value="${data?.relic_weapon||0}"></label><label>🔵 Artefato<input id="mArtifact" type="number" min="0" value="${data?.relic_artifact||0}"></label><label>🟢 Armadura<input id="mArmor" type="number" min="0" value="${data?.relic_armor||0}"></label></div>`}
+    if(mode==='task'){$('modalTitle').textContent=data?'Editar tarefa':'Adicionar tarefa';$('modalBody').innerHTML=`<div class="form"><label>Nome<input id="mName" value="${esc(data?.name||'')}"></label><label>Chave interna<input id="mKey" value="${esc(data?.task_key||'')}" ${data?'disabled':''}></label></div>`}
+    if(mode==='agenda'){$('modalTitle').textContent=data?'Editar agenda':'Adicionar à agenda';$('modalBody').innerHTML=`<div class="form"><label>Data<input id="mDate" type="date" value="${data?.day||current}"></label><label>Horário<input id="mTime" type="time" value="${data?.time_text||''}"></label><label>Título<input id="mTitle" value="${esc(data?.title||'')}"></label><label>Observação<textarea id="mNote" rows="3">${esc(data?.note||'')}</textarea></label></div>`}}
+  function closeModal(){$('modal').classList.remove('open');$('modal').dataset.editId='';modalMode=null}
+  async function saveModal(){const id=$('modal').dataset.editId;
+    if(modalMode==='account'){const name=$('mName').value.trim(),cid=$('mCid').value.trim();if(!name){toast('Informe o nome.');return}const payload={name,game_cid:cid?Number(cid):null,relic_weapon:Math.max(0,Number($('mWeapon').value)||0),relic_artifact:Math.max(0,Number($('mArtifact').value)||0),relic_armor:Math.max(0,Number($('mArmor').value)||0)};if(!id)payload.owner_id=userId;const {error}=id?await sb.from('accounts').update(payload).eq('id',id):await sb.from('accounts').insert(payload);if(error){toast(error.message);return}}
+    if(modalMode==='task'){const name=$('mName').value.trim(),key=$('mKey').value.trim().toLowerCase().replace(/\s+/g,'_');if(!name||(!id&&!key)){toast('Preencha os campos.');return}const payload=id?{name}:{owner_id:userId,name,task_key:key};const {error}=id?await sb.from('tasks').update(payload).eq('id',id):await sb.from('tasks').insert(payload);if(error){toast(error.message);return}}
+    if(modalMode==='agenda'){const payload={day:$('mDate').value,time_text:$('mTime').value||null,title:$('mTitle').value.trim(),note:$('mNote').value.trim()};if(!payload.title){toast('Informe o título.');return}if(!id)payload.owner_id=userId;const {error}=id?await sb.from('agenda').update(payload).eq('id',id):await sb.from('agenda').insert(payload);if(error){toast(error.message);return}}
+    closeModal();await loadAll();toast('Salvo.')}
+  window.editAccount=id=>{const a=accounts.find(x=>x.id===id);if(a)openModal('account',a)};window.renameTask=id=>{const t=tasks.find(x=>x.id===id);if(t)openModal('task',t)};window.editAgenda=id=>{const x=agenda.find(a=>a.id===id);if(x)openModal('agenda',x)};
+  window.removeAccount=async(id,name)=>{if(!confirm(`Remover a conta “${name}”?`))return;const {error}=await sb.from('accounts').delete().eq('id',id);if(error)toast(error.message);else await loadAll()};window.removeTask=async(id,name)=>{if(!confirm(`Remover a tarefa “${name}”?`))return;const {error}=await sb.from('tasks').delete().eq('id',id);if(error)toast(error.message);else await loadAll()};window.deleteAgenda=async id=>{if(!confirm('Excluir este compromisso?'))return;const {error}=await sb.from('agenda').delete().eq('id',id);if(error)toast(error.message);else await loadAll()};
+  function changeDay(n){const d=new Date(current+'T12:00:00');d.setDate(d.getDate()+n);current=iso(d);loadAll()}function setDate(v){if(/^\d{4}-\d{2}-\d{2}$/.test(v)){current=v;loadAll()}}
+  function setTab(id){document.querySelectorAll('.tab-panel').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===id));$('pageTitle').textContent=({tasksTab:'Tarefas',relicsTab:'Relíquias',instancesTab:'Instância',agendaTab:'Agenda',weekTab:'Resumo Semanal',adminTab:'Administração'})[id]||'Painel'}
+  $('loginBtn').onclick=login;$('accessCode').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').onclick=async()=>{await sb.auth.signOut();if(channel)sb.removeChannel(channel);location.reload()};$('prevBtn').onclick=()=>changeDay(-1);$('nextBtn').onclick=()=>changeDay(1);$('todayBtn').onclick=()=>setDate(todayISO());$('datePicker').onchange=e=>setDate(e.target.value);$('search').oninput=renderAccounts;$('filter').onchange=renderAccounts;$('quickAddAccountBtn').onclick=()=>openModal('account');$('addAccountBtn').onclick=()=>openModal('account');$('addTaskBtn').onclick=()=>openModal('task');$('modalCancel').onclick=closeModal;$('modalSave').onclick=saveModal;document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{if(btn.id==='adminNavBtn'&&role!=='admin')return;setTab(btn.dataset.tab)}));$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+  sb.auth.getSession().then(({data:{session}})=>{if(session)startApp();else $('accessCode').focus()});
+})();
+</script>
+</body>
+</html>
